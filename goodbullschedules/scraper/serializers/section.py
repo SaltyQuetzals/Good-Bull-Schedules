@@ -8,8 +8,16 @@ class MeetingSerializer(serializers.ModelSerializer):
         fields = ("location", "meeting_days", "start_time", "end_time", "meeting_type")
 
 
+class AggregateGradeField(serializers.DictField):
+    child = serializers.FloatField()
+
+    class Meta:
+        validators = [lambda x: x in "ABCDFISUQX"]
+
+
 class SectionSerializer(serializers.ModelSerializer):
     meetings = MeetingSerializer(many=True, read_only=True)
+    historical_performance = AggregateGradeField(read_only=True, required=False)
 
     class Meta:
         model = models.Section
@@ -24,4 +32,5 @@ class SectionSerializer(serializers.ModelSerializer):
             "max_credits",
             "instructor",
             "meetings",
+            "historical_performance",
         )

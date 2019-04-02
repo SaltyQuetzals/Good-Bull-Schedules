@@ -32,56 +32,26 @@ class CourseRetrieveView(views.APIView):
             dept=dept, course_num=course_num, term_code=term_code
         ).all()
 
-        sections_data = serializers.SectionSerializer(sections_obj, many=True).data
-
         instructors = {}
-        for section in sections_data:
-            instructor = section["instructor"]
-            if instructor not in instructors:
-                instructors[instructor] = models.Grades.objects.professor_performance(
-                    section["dept"], section["course_num"], instructor
+        for section in sections_obj:
+            if not section.instructor in instructors:
+                historical_performance = models.Grades.objects.instructor_performance(
+                    dept, course_num, section.instructor
                 )
-            section["instructor_performance"] = instructors[instructor]
+                instructors[section.instructor] = historical_performance
+            section.historical_performance = instructors[section.instructor]
 
-        course_data["sections"] = sections_data
-
+        serialized_sections = serializers.SectionSerializer(
+            sections_obj, many=True
+        ).data
+        course_data["sections"] = serialized_sections
         return response.Response(course_data)
 
 
 class SectionRetrieveView(generics.RetrieveAPIView):
     queryset = models.Section.objects.all()
-    serializer_class = serializers.SectionSerializer
     renderer_classes = [renderers.JSONRenderer]
-
-    def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        lookup = {
-            "dept": self.kwargs["dept"],
-            "course_num": self.kwargs["course_num"],
-            "section_num": self.kwargs["section_num"],
-            "term_code": self.kwargs["term_code"],
-        }
-        obj = shortcuts.get_object_or_404(queryset, **lookup)
-        serialized_obj = serializers.SectionSerializer(obj).data
-        serialized_obj[
-            "instructor_performance"
-        ] = models.Grades.objects.professor_performance(
-            obj.dept, obj.course_num, obj.instructor
-        )
-        return response.Response(serialized_obj)
+    serializer_class = serializers.SectionSerializer
 
     def get_object(self):
-        queryset = self.get_queryset()
-        lookup = {
-            "dept": self.kwargs["dept"],
-            "course_num": self.kwargs["course_num"],
-            "section_num": self.kwargs["section_num"],
-            "term_code": self.kwargs["term_code"],
-        }
-        obj = shortcuts.get_object_or_404(queryset, **lookup)
-        obj.instructor_performance = models.Grades.objects.professor_performance(
-            obj.dept, obj.course_num, obj.instructor
-        )
-        return obj
-
+        return self.get_queryset().get(**self.kwargs)

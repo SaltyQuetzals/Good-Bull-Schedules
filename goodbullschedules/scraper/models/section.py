@@ -13,7 +13,6 @@ class Meeting(models.Model):
     class Meta:
         db_table = "meeting"
 
-
 class Section(models.Model):
     id = models.CharField(max_length=15, primary_key=True)
     name = models.CharField(max_length=75)

@@ -4,7 +4,7 @@ from django.db import models
 
 
 class GradeManager(models.Manager):
-    def professor_performance(self, dept: str, course_num: str, instructor: str):
+    def instructor_performance(self, dept: str, course_num: str, instructor: str):
         return (
             self.prefetch_related("section")
             .filter(
@@ -18,7 +18,11 @@ class GradeManager(models.Manager):
                 C=models.Avg("C"),
                 D=models.Avg("D"),
                 F=models.Avg("F"),
+                I=models.Avg("I"),
+                S=models.Avg("S"),
+                U=models.Avg("U"),
                 Q=models.Avg("Q"),
+                X=models.Avg("X"),
             )
         )
 
