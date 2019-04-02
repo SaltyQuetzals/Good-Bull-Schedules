@@ -1,4 +1,5 @@
 from django.db import models
+from scraper import models as scraper_models
 
 
 class Meeting(models.Model):
@@ -16,11 +17,11 @@ class Meeting(models.Model):
 class Section(models.Model):
     id = models.CharField(max_length=15, primary_key=True)
     name = models.CharField(max_length=75)
-    term_code = models.IntegerField()
+    term_code = models.IntegerField(db_index=True)
     crn = models.IntegerField()
-    dept = models.CharField(max_length=5)
-    course_num = models.CharField(max_length=6)
-    section_num = models.CharField(max_length=6)
+    dept = models.CharField(max_length=5, db_index=True)
+    course_num = models.CharField(max_length=6, db_index=True)
+    section_num = models.CharField(max_length=6, db_index=True)
     min_credits = models.FloatField(null=True)
     max_credits = models.FloatField(null=True)
 
@@ -29,3 +30,4 @@ class Section(models.Model):
 
     class Meta:
         db_table = "section"
+        unique_together = ("term_code", "crn")
