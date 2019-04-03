@@ -52,6 +52,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "goodbullschedules.urls"
+APPEND_SLASH = True
 
 TEMPLATES = [
     {
