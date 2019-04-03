@@ -204,3 +204,58 @@ class SchedulerViewsTestCase(TestCase):
             f"/api/schedules/{schedule.pk}/sections/{self.dummy_section_id}"
         )
         self.assertFalse(status.is_success(response.status_code))
+
+    def test_can_add_course(self):
+        schedule = self.create_schedule(self.user, self.schedule_fields)
+        self.client.login(**self.user_creds)
+        response = self.client.patch(
+            f"/api/schedules/{schedule.pk}/courses", {"course_id": self.dummy_course.pk}
+        )
+        schedule = scheduler_models.Schedule.objects.get(**self.schedule_fields)
+        self.assertIn(self.dummy_course, schedule.courses.all())
+
+    def test_only_owner_can_add_course(self):
+        schedule = self.create_schedule(self.user, self.schedule_fields)
+        self.client.login(**self.user2_creds)
+
+        patch_body = {"course_id": self.dummy_course.pk}
+        response = self.client.patch(
+            f"/api/schedules/{schedule.pk}/courses", patch_body
+        )
+        self.assertFalse(status.is_success(response.status_code))
+        self.client.logout()
+
+        response = self.client.patch(
+            f"/api/schedules/{schedule.pk}/courses", patch_body
+        )
+        self.assertFalse(status.is_success(response.status_code))
+
+    def test_can_delete_course(self):
+        schedule = self.create_schedule(self.user, self.schedule_fields)
+        schedule.courses.add(self.dummy_course)
+
+        self.client.login(**self.user_creds)
+        response = self.client.delete(
+            f"/api/schedules/{schedule.pk}/courses/{self.dummy_course.pk}"
+        )
+        self.assertTrue(status.is_success(response.status_code))
+        schedule = scheduler_models.Schedule.objects.get(**self.schedule_fields)
+        self.assertNotIn(self.dummy_course, schedule.courses.all())
+
+    def test_only_owner_can_delete_course(self):
+        schedule = self.create_schedule(self.user, self.schedule_fields)
+        schedule.courses.add(self.dummy_course)
+
+        self.client.login(**self.user2_creds)
+        response = self.client.delete(
+            f"/api/schedules/{schedule.pk}/courses/{self.dummy_course.pk}"
+        )
+        self.assertFalse(status.is_success(response.status_code))
+        self.client.logout()
+        
+        response = self.client.delete(
+            f"/api/schedules/{schedule.pk}/courses/{self.dummy_course.pk}"
+        )
+        self.assertFalse(status.is_success(response.status_code))
+
+

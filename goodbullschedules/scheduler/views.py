@@ -106,7 +106,7 @@ class DeleteSectionScheduleView(generics.DestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         schedule = self.get_object()
-        section = scraper_models.Section.objects.get(pk=kwargs["section_pk"])
+        section = scraper_models.Section.objects.get(pk=kwargs["section_id"])
         schedule.sections.remove(section)
         return response.Response(status=200)
 
@@ -119,6 +119,7 @@ class AddCourseScheduleView(generics.UpdateAPIView):
         schedule = self.get_object()
         course = scraper_models.Course.objects.get(pk=request.data["course_id"])
         schedule.courses.add(course)
+        return response.Response(status=200)
 
 
 class DeleteCourseScheduleView(generics.DestroyAPIView):
