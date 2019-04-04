@@ -17,8 +17,23 @@ class Command(base.BaseCommand):
                 results = parser.parse_sections(soup)
 
                 with transaction.atomic():
+                    courses = {}
                     for section_fields, meeting_fields in results:
                         section_id = f"{section_fields['crn']}_{term_code}"
+                        course_id = f"{dept}-{section_fields['course_num']}"
+                        if not course_id in courses:
+                            course, _ = scraper_models.Course.objects.update_or_create(
+                                id=course_id,
+                                defaults={
+                                    "dept": dept,
+                                    "course_num": section_fields["course_num"],
+                                    "min_credits": section_fields["min_credits"],
+                                    "max_credits": section_fields["max_credits"],
+                                    "course_num": section_fields["course_num"],
+                                    "name": section_fields["name"].title(),
+                                },
+                            )
+                            courses[course_id] = course
                         section, _ = scraper_models.Section.objects.update_or_create(
                             id=section_id,
                             defaults={

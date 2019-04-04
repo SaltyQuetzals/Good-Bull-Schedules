@@ -13,6 +13,7 @@ class Meeting(models.Model):
     class Meta:
         db_table = "meeting"
 
+
 class Section(models.Model):
     id = models.CharField(max_length=15, primary_key=True)
     name = models.CharField(max_length=75)
@@ -26,6 +27,11 @@ class Section(models.Model):
 
     instructor = models.CharField(max_length=150, null=True, blank=True)
     meetings = models.ManyToManyField(Meeting)
+
+    def historical_instructor_performance(self):
+        return scraper_models.Grades.objects.instructor_performance(
+            dept=self.dept, course_num=self.course_num, instructor=self.instructor
+        )
 
     class Meta:
         db_table = "section"

@@ -3,7 +3,12 @@ from scraper import models as scraper_models
 from django.contrib.auth import models as auth_models
 
 # Create your models here.
+
+
 class Schedule(models.Model):
+    def __term_code(self):
+        return self.term_code
+
     owner = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
     courses = models.ManyToManyField(scraper_models.Course)
     sections = models.ManyToManyField(scraper_models.Section)

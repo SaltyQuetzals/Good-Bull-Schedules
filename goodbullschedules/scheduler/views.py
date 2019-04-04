@@ -55,12 +55,8 @@ class RetrieveDestroyScheduleView(generics.RetrieveDestroyAPIView):
             instructors = {}
             for section in sections_obj:
                 if not section.instructor in instructors:
-                    historical_performance = scraper_models.Grades.objects.instructor_performance(
-                        dept=section.dept,
-                        course_num=section.course_num,
-                        instructor=section.instructor,
-                    )
-                    instructors[section.instructor] = historical_performance
+                    performance = section.historical_instructor_performance()
+                    instructors[section.instructor] = performance
                 section.historical_performance = instructors[section.instructor]
             serialized_sections = scraper_serializers.SectionSerializer(
                 sections_obj, many=True
