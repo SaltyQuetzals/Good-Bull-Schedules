@@ -22,9 +22,9 @@ To set up the application:
 2. `docker ps` will list the running containers. Find the container labeled `good_bull_schedules_web...`, and remember the container ID.
 3. `docker exec -it <CONTAINER ID> /bin/bash` will allow you to interact with the container
 4. To populate the database, you'll need to run the following commands inside of the `good_bull_schedules_web...` container:
-  1. `python3 manage.py scrape_courses` will scrape course information (approximately 5 minutes)
-  2. `python3 manage.py scrape_sections` will scrape all section data from 2009 to present. This takes a long time (several hours). If you don't particularly care about the entire dataset, and just want a small part of it, run `python3 manage.py scrape_sections --shallow`.
-  3. `python3 manage.py scrape_grades` will download, parse, and store grade distributions for all sections. (roughly 30 minutes)
+    1. `python3 manage.py scrape_courses` will scrape course information (approximately 5 minutes)
+    2. `python3 manage.py scrape_sections` will scrape all section data from 2009 to present. This takes a long time (several hours). If you don't particularly care about the entire dataset, and just want a small part of it, run `python3 manage.py scrape_sections --shallow`.
+    3. `python3 manage.py scrape_grades` will download, parse, and store grade distributions for all sections. (roughly 30 minutes)
 
 You should be good to go now! Unless there are significant database changes, you shouldn't have to re-run the above scripts again. Navigate to `localhost:8000`, and go nuts!
 
