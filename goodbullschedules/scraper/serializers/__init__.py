@@ -1,5 +1,10 @@
-from .course import CourseSerializer
+from .course import CourseSerializer, CourseSearchSerializer
 from .section import SectionSerializer, MeetingSerializer
 
-__all__ = ["CourseSerializer", "SectionSerializer", "MeetingSerializer"]
+__all__ = [
+    "CourseSerializer",
+    "CourseSearchSerializer",
+    "SectionSerializer",
+    "MeetingSerializer",
+]
 

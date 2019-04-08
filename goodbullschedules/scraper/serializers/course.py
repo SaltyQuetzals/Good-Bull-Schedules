@@ -17,3 +17,10 @@ class CourseSerializer(serializers.ModelSerializer):
             "distribution_of_hours",
         )
 
+
+class CourseSearchSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    dept = serializers.CharField()
+    course_num = serializers.CharField()
+    description = serializers.CharField()
+    search = serializers.CharField(required=False)

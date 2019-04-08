@@ -1,12 +1,28 @@
 from django import shortcuts
-from rest_framework import renderers
+from django.core.cache import cache
+from rest_framework import generics, renderers
 from rest_framework import request as rf_request
-from rest_framework import response, views, generics
+from rest_framework import response, views
+from elasticsearch_dsl import Q
 
-from scraper import models, serializers
-
+from scraper import models, serializers, documents
 
 # Create your views here.
+
+
+class CourseSearchView(generics.ListAPIView):
+    renderer_classes = [renderers.JSONRenderer]
+    serializer_class = serializers.CourseSearchSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        q = self.request.query_params.get("q")
+        if q is not None:
+            return documents.CourseDocument.search().query("match", search=q).to_queryset()
+        
+        return models.Course.objects.none()
+
+
+
 class CourseRetrieveView(views.APIView):
     """
     View to retrieve a specific course and its sections, given a department, course number, and term code.
@@ -23,6 +39,10 @@ class CourseRetrieveView(views.APIView):
             kwargs["course_num"],
             kwargs["term_code"],
         )
+        cached_result = cache.get(f"/{dept}/{course_num}/{term_code}")
+        if cached_result:
+            return response.Response(cached_result)
+
         course_obj = shortcuts.get_object_or_404(
             models.Course, dept=dept, course_num=course_num
         )
@@ -45,6 +65,7 @@ class CourseRetrieveView(views.APIView):
             sections_obj, many=True
         ).data
         course_data["sections"] = serialized_sections
+        cache.set(f"{dept}/{course_num}/{term_code}", course_data)
         return response.Response(course_data)
 
 

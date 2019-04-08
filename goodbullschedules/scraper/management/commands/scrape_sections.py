@@ -14,6 +14,8 @@ class Command(base.BaseCommand):
             for dept in shared_functions.depts(term_code):
                 print(dept)
                 soup = shared_functions.sections(term_code, dept)
+                if not soup:
+                    continue
                 results = parser.parse_sections(soup)
 
                 with transaction.atomic():
@@ -22,6 +24,9 @@ class Command(base.BaseCommand):
                         section_id = f"{section_fields['crn']}_{term_code}"
                         course_id = f"{dept}-{section_fields['course_num']}"
                         if not course_id in courses:
+                            course_name = section_fields["name"].title()
+                            if section_fields["course_num"].endswith("89"):
+                                course_name = "Special Topics"
                             course, _ = scraper_models.Course.objects.update_or_create(
                                 id=course_id,
                                 defaults={
@@ -30,7 +35,7 @@ class Command(base.BaseCommand):
                                     "min_credits": section_fields["min_credits"],
                                     "max_credits": section_fields["max_credits"],
                                     "course_num": section_fields["course_num"],
-                                    "name": section_fields["name"].title(),
+                                    "name": course_name,
                                 },
                             )
                             courses[course_id] = course

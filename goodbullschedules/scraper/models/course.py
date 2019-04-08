@@ -13,6 +13,10 @@ class Course(models.Model):
     max_credits = models.FloatField(null=True)
     distribution_of_hours = models.CharField(max_length=100)
 
+    @property
+    def full_name(self) -> str:
+        return self.id + " " + self.name
+
     class Meta:
         db_table = "course"
         ordering = ("dept", "course_num")

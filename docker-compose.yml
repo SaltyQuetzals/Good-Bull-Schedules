@@ -3,12 +3,29 @@ version: "3"
 services:
   db:
     image: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=goodbullschedules
+  redis:
+    image: redis:latest
+  elasticsearch:
+    image: elasticsearch:6.5.0
+    environment:
+      ES_JAVA_OPTS: "-Xms750m -Xmx750m"
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver --settings=goodbullschedules.settings.docker 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - redis
+      - elasticsearch
+
+volumes:
+  pgdata:
