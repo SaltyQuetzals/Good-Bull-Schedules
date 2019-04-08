@@ -31,9 +31,10 @@ To set up the application:
     3. `python3 manage.py scrape_grades --settings=goodbullschedules.settings.docker` will download, parse, and store grade distributions for all sections. (roughly 30 minutes)
     4. Lastly, to build the search index, run `python3 manage.py search_index --rebuild --settings=goodbullschedules.settings.docker`.
 
-## Option 2 (More automatic, only tested on Unix systems, but probably can be done in PowerShell/WSL)
+### Option 2 (More automatic, only tested on Unix systems, but probably can be done in PowerShell/WSL)
 
 2. Run `./initialize.sh`.
+
 
 You should be good to go now! Unless there are significant database changes, you shouldn't have to re-run the above scripts again. Navigate to `localhost:8000`, and go nuts!
 
