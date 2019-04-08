@@ -20,7 +20,7 @@ To run Good-Bull-Schedules, you'll need to have [Docker](https://docs.docker.com
 To set up the application:
 
 0. **NOTE**: Elasticsearch requires more memory to run than most Docker setups will allow by default. To provide Elasticsearch with enough memory, please see [this](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode) link, and follow the instructions for your appropriate platform.
-1. `docker-compose up --build` will start the cluster
+1. `docker-compose up --build` will start the cluster. However, there won't be data present. Here's how to populate the data:
 
 ### Option 1 (More manual, all systems guaranteed)
 
@@ -33,8 +33,7 @@ To set up the application:
 
 ### Option 2 (More automatic, only tested on Unix systems, but probably can be done in PowerShell/WSL)
 
-2. Run `./initialize.sh`.
-
+2. Run `./scrape_data.sh`.
 
 You should be good to go now! Unless there are significant database changes, you shouldn't have to re-run the above scripts again. Navigate to `localhost:8000`, and go nuts!
 
