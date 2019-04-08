@@ -26,6 +26,7 @@ services:
       - db
       - redis
       - elasticsearch
+    container_name: good-bull-schedules
 
 volumes:
   pgdata:
