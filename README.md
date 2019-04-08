@@ -1,5 +1,10 @@
 # Good-Bull-Schedules
-Open-source scheduling server for Texas A&amp;M University students, written in Django.
+Open-source scheduling server for Texas A&amp;M University students, written using:
+
+- Django for running the webserver
+- Redis for caching and improving overall response times for the data API.
+- PostgreSQL for storing data.
+- Elasticsearch for high-performance full-text searching.
 
 ## Goals
 - Create an open, no-auth-needed API for students to analyze TAMU course/section data without having to create their own scrapers.
@@ -8,12 +13,6 @@ Open-source scheduling server for Texas A&amp;M University students, written in 
 
 
 ## Setting Up
-
-This app relies on:
-- Python3 for running the webserver
-- Redis for caching and improving overall response times for the data API.
-- PostgreSQL for storing data.
-- Elasticsearch for high-performance full-text searching.
 
 To run Good-Bull-Schedules, you'll need to have [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
 
