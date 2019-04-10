@@ -39,8 +39,3 @@ You should be good to go now! Unless there are significant database changes, you
 
 ## Contributing
 We'd love to have you contribute! We want to encourage all kinds of developers (inexperienced and experienced) to contribute to this project, to make it the best that it can be.
-
-## Future Goals
-- Adding courses to a student's personal calendar.
-- Create a system based on schedule clusters to recommend classes to students based on their schedule.
-- Implement a comment/rating system for students to provide feedback on courses for further analytics.
