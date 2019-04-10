@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.views.generic import RedirectView
+from .views import index
 from django.urls import path, include
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
     path("auth/", include("rest_framework.urls")),
     path("api/data/", include("scraper.urls")),
     path("api/schedules/", include("scheduler.urls")),
+    path("", index)
 ]

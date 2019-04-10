@@ -1,0 +1,2 @@
+.drawer-container{display:-webkit-flex;display:flex;-webkit-flex-direction:row;flex-direction:row;height:100vh;overflow:hidden}.drawer{-webkit-flex:1 1;flex:1 1;overflow:auto}.drawer-app-content{-webkit-flex:3 1;flex:3 1;overflow:auto}.course-list-item :hover{cursor:pointer}.fab{position:fixed;right:4em;bottom:4em;border-radius:3em;width:6em!important;height:6em!important}.schedule-select{width:100%}
+/*# sourceMappingURL=main.7c4c1bb5.chunk.css.map */
