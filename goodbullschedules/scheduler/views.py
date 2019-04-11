@@ -15,10 +15,46 @@ class IsOwner(permissions.BasePermission):
         return obj.owner == request.user
 
 
-class CreateScheduleView(generics.CreateAPIView):
+class ListCreateSchedulesView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = scheduler_models.Schedule.objects.all()
     serializer_class = scheduler_serializers.ScheduleSerializer
+
+    def get_queryset(self):
+        return scheduler_models.Schedule.objects.filter(owner=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        schedules = {}
+        for schedule in self.get_queryset().all():
+            course_serializer = scraper_serializers.CourseSerializer(
+                schedule.courses.all(), many=True
+            )
+            course_data = course_serializer.data
+            courses = {}
+            for course in course_data:
+                filter = {
+                    "dept": course["dept"],
+                    "course_num": course["course_num"],
+                    "term_code": schedule.term_code,
+                }
+                sections_obj = scraper_models.Section.objects.filter(**filter).all()
+                instructors = {}
+                for section in sections_obj:
+                    if not section.instructor in instructors:
+                        performance = section.historical_instructor_performance()
+                        instructors[section.instructor] = performance
+                    section.historical_performance = instructors[section.instructor]
+                serialized_sections = scraper_serializers.SectionSerializer(
+                    sections_obj, many=True
+                ).data
+                course["sections"] = serialized_sections
+                courses[course["dept"] + "-" + course["course_num"]] = dict(**course)
+            schedule_json = {
+                "term_code": schedule.term_code,
+                "courses": courses,
+                "sections": schedule.sections.values_list("pk", flat=True),
+            }
+            schedules[schedule.name] = schedule_json
+        return response.Response(data=schedules)
 
     def create(self, request, *args, **kwargs):
         data = {
