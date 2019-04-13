@@ -16,11 +16,12 @@ class IsOwner(permissions.BasePermission):
 
 
 class ListCreateSchedulesView(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     serializer_class = scheduler_serializers.ScheduleSerializer
 
     def get_queryset(self):
-        return scheduler_models.Schedule.objects.filter(owner=self.request.user)
+        return scheduler_models.Schedule.objects.all()
+        # return scheduler_models.Schedule.objects.filter(owner=self.request.user)
 
     def list(self, request, *args, **kwargs):
         schedules = {}
@@ -52,6 +53,7 @@ class ListCreateSchedulesView(generics.ListCreateAPIView):
                 "term_code": schedule.term_code,
                 "courses": courses,
                 "sections": schedule.sections.values_list("pk", flat=True),
+                "id": schedule.id,
             }
             schedules[schedule.name] = schedule_json
         return response.Response(data=schedules)
@@ -104,6 +106,7 @@ class RetrieveDestroyScheduleView(generics.RetrieveDestroyAPIView):
             "term_code": schedule.term_code,
             "courses": courses,
             "sections": schedule.sections.values_list("pk", flat=True),
+            "id": schedule.id,
         }
         return response.Response(data=data)
 
@@ -147,12 +150,36 @@ class DeleteSectionScheduleView(generics.DestroyAPIView):
 class AddCourseScheduleView(generics.UpdateAPIView):
     permission_classes = (IsOwner, permissions.IsAuthenticated)
     queryset = scheduler_models.Schedule.objects.all()
+    serializer_class = scraper_serializers.CourseSerializer
 
     def partial_update(self, request, *args, **kwargs):
         schedule = self.get_object()
         course = scraper_models.Course.objects.get(pk=request.data["course_id"])
         schedule.courses.add(course)
-        return response.Response(status=200)
+
+        course_data = self.get_serializer(course).data
+
+        sections_obj = scraper_models.Section.objects.filter(
+            dept=course.dept, course_num=course.course_num, term_code=schedule.term_code
+        ).all()
+
+        if len(sections_obj) == 0:
+            return response.Response(status=400)
+
+        instructors = {}
+        for section in sections_obj:
+            if not section.instructor in instructors:
+                historical_performance = scraper_models.Grades.objects.instructor_performance(
+                    course.dept, course.course_num, section.instructor
+                )
+                instructors[section.instructor] = historical_performance
+            section.historical_performance = instructors[section.instructor]
+
+        serialized_sections = scraper_serializers.SectionSerializer(
+            sections_obj, many=True
+        ).data
+        course_data["sections"] = serialized_sections
+        return response.Response(course_data)
 
 
 class DeleteCourseScheduleView(generics.DestroyAPIView):
@@ -164,4 +191,8 @@ class DeleteCourseScheduleView(generics.DestroyAPIView):
         schedule = self.get_object()
         course = scraper_models.Course.objects.get(pk=kwargs["course_id"])
         schedule.courses.remove(course)
+        sections_to_remove = schedule.sections.filter(
+            dept=course.dept, course_num=course.course_num
+        )
+        schedule.sections.remove(sections_to_remove)
         return response.Response(200)

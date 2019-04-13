@@ -19,5 +19,5 @@ class ScheduleSerializer(rf_serializers.ModelSerializer):
         return schedule
 
     class Meta:
-        fields = ("courses", "sections", "name", "term_code")
+        fields = ("courses", "sections", "name", "term_code", "id")
         model = scheduler_models.Schedule

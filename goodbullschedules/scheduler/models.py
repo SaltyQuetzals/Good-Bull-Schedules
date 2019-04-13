@@ -6,8 +6,6 @@ from django.contrib.auth import models as auth_models
 
 
 class Schedule(models.Model):
-    def __term_code(self):
-        return self.term_code
 
     owner = models.ForeignKey(auth_models.User, on_delete=models.CASCADE)
     courses = models.ManyToManyField(scraper_models.Course)
