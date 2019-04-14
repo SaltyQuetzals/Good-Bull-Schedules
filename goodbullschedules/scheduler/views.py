@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, response, views
+from rest_framework import generics, permissions, response, views, renderers
 
 from scheduler import models as scheduler_models
 from scheduler import serializers as scheduler_serializers
@@ -18,6 +18,7 @@ class IsOwner(permissions.BasePermission):
 class ListCreateSchedulesView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = scheduler_serializers.ScheduleSerializer
+    renderer_classes = [renderers.JSONRenderer]
 
     def get_queryset(self):
         return scheduler_models.Schedule.objects.filter(owner=self.request.user)
@@ -74,6 +75,7 @@ class RetrieveDestroyScheduleView(generics.RetrieveDestroyAPIView):
     permission_classes = (IsOwner, permissions.IsAuthenticated)
     queryset = scheduler_models.Schedule.objects.all()
     serializer_class = scheduler_serializers.ScheduleSerializer
+    renderer_classes = [renderers.JSONRenderer]
 
     def retrieve(self, request, *args, **kwargs):
         schedule = self.get_object()
@@ -112,6 +114,7 @@ class AddSectionScheduleView(generics.UpdateAPIView):
     permission_classes = (IsOwner, permissions.IsAuthenticated)
     queryset = scheduler_models.Schedule.objects.all()
     serializer_class = scheduler_serializers.ScheduleSerializer
+    renderer_classes = [renderers.JSONRenderer]
 
     def partial_update(self, request, *args, **kwargs):
         schedule = self.get_object()
@@ -136,6 +139,7 @@ class DeleteSectionScheduleView(generics.DestroyAPIView):
     permission_classes = (IsOwner, permissions.IsAuthenticated)
     queryset = scheduler_models.Schedule.objects.all()
     serializer_class = scheduler_serializers.ScheduleSerializer
+    renderer_classes = [renderers.JSONRenderer]
 
     def destroy(self, request, *args, **kwargs):
         schedule = self.get_object()
@@ -147,6 +151,7 @@ class DeleteSectionScheduleView(generics.DestroyAPIView):
 class AddCourseScheduleView(generics.UpdateAPIView):
     permission_classes = (IsOwner, permissions.IsAuthenticated)
     queryset = scheduler_models.Schedule.objects.all()
+    renderer_classes = [renderers.JSONRenderer]
 
     def partial_update(self, request, *args, **kwargs):
         schedule = self.get_object()
@@ -159,6 +164,7 @@ class DeleteCourseScheduleView(generics.DestroyAPIView):
     permission_classes = (IsOwner, permissions.IsAuthenticated)
     queryset = scheduler_models.Schedule.objects.all()
     serializer_class = scheduler_serializers.ScheduleSerializer
+    renderer_classes = [renderers.JSONRenderer]
 
     def destroy(self, request, *args, **kwargs):
         schedule = self.get_object()
