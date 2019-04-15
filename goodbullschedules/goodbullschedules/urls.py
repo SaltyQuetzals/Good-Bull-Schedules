@@ -18,11 +18,12 @@ from django.views.decorators.cache import cache_control
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.views.generic import RedirectView
-from .views import IndexView
+from .views import IndexView, register
 from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("register/", register),
     path("auth/", include("rest_framework.urls")),
     path("api/data/", include("scraper.urls")),
     path("api/schedules/", include("scheduler.urls")),
