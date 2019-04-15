@@ -3,6 +3,7 @@ from scraper import views
 
 urlpatterns = [
     path("search/", views.CourseSearchView.as_view(), name="course-search"),
+    path("terms/", views.TermListView.as_view(), name="terms-list"),
     path(
         "<str:dept>/<str:course_num>/<int:term_code>/<str:section_num>",
         views.SectionRetrieveView.as_view(),

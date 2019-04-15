@@ -17,10 +17,11 @@ class CourseSearchView(generics.ListAPIView):
     def get_queryset(self, *args, **kwargs):
         q = self.request.query_params.get("q")
         if q is not None:
-            return documents.CourseDocument.search().query("match", search=q).to_queryset()
-        
-        return models.Course.objects.none()
+            return (
+                documents.CourseDocument.search().query("match", search=q).to_queryset()
+            )
 
+        return models.Course.objects.none()
 
 
 class CourseRetrieveView(views.APIView):
@@ -76,3 +77,11 @@ class SectionRetrieveView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.get_queryset().get(**self.kwargs)
+
+
+class TermListView(views.APIView):
+    def get(self, request, *args, **kwargs):
+        term_codes = models.Section.objects.values_list(
+            "term_code", flat=True
+        ).distinct()
+        return response.Response(data=term_codes)

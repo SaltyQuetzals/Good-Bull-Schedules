@@ -16,13 +16,12 @@ class IsOwner(permissions.BasePermission):
 
 
 class ListCreateSchedulesView(generics.ListCreateAPIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = scheduler_serializers.ScheduleSerializer
     renderer_classes = [renderers.JSONRenderer]
 
     def get_queryset(self):
-        return scheduler_models.Schedule.objects.all()
-        # return scheduler_models.Schedule.objects.filter(owner=self.request.user)
+        return scheduler_models.Schedule.objects.filter(owner=self.request.user)
 
     def list(self, request, *args, **kwargs):
         schedules = {}
@@ -160,17 +159,17 @@ class AddCourseScheduleView(generics.UpdateAPIView):
     def partial_update(self, request, *args, **kwargs):
         schedule = self.get_object()
         course = scraper_models.Course.objects.get(pk=request.data["course_id"])
-        schedule.courses.add(course)
-
-        course_data = self.get_serializer(course).data
 
         sections_obj = scraper_models.Section.objects.filter(
             dept=course.dept, course_num=course.course_num, term_code=schedule.term_code
         ).all()
 
         if len(sections_obj) == 0:
-            return response.Response(status=400)
+            return response.Response(status=404)
 
+        schedule.courses.add(course)
+
+        course_data = self.get_serializer(course).data
         instructors = {}
         for section in sections_obj:
             if not section.instructor in instructors:
