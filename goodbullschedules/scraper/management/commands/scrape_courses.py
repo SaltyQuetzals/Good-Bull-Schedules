@@ -1,8 +1,13 @@
+import asyncio
+import concurrent
 import re
+import time
 from typing import Dict, List, Set, Tuple
 
 import bs4
+import requests
 from django.core.management import base
+from django.db import transaction
 
 from scraper import models as scraper_models
 from scraper.management.commands.shared_functions import request_html
@@ -38,7 +43,7 @@ def collect_departments(dept_list_html: bs4.BeautifulSoup) -> List[Tuple[str, st
     return url_dept_pairs
 
 
-def parse_courseblocktitle(courseblocktitle: bs4.BeautifulSoup) -> Tuple[str, str]:
+def parse_courseblocktitle(courseblocktitle: bs4.BeautifulSoup) -> Tuple[str, str, str]:
     """Parses the course number and course name from a .courseblocktitle element.
     
     Args:
@@ -47,7 +52,7 @@ def parse_courseblocktitle(courseblocktitle: bs4.BeautifulSoup) -> Tuple[str, st
         A tuple of format (Course number, Course name).
     """
     COURSE_NUM_NAME_PATTERN = re.compile(
-        "(?:[a-zA-Z]{3,4}[0-9]?) (?P<course_num>[0-9]{3,4}[a-zA-Z]?) (?P<name>.*)"
+        "(?P<dept>[a-zA-Z]{3,4}[0-9]?) (?P<course_num>[0-9]{3,4}[a-zA-Z]?) (?P<name>.*)"
     )
     title_text = courseblocktitle.select_one("strong").text
     title_text = sanitize(title_text)
@@ -63,7 +68,7 @@ def parse_hours(hours: bs4.BeautifulSoup) -> Tuple[int, int, str]:
     Args:
         hours: A BeautifulSoup instance around the .hours element of a .courseblock elem.
     Returns:
-        A triple of format (min_hours, max_hours, Number of hours in lecture, lab, etc.)
+        A triple of format (min_credits, max_hours, Number of hours in lecture, lab, etc.)
     """
     CREDITS_PATTERN = re.compile(
         r"Credits? (?P<min>[\d.]{1,3})(?:(?:-| to | or )(?P<max>[\d.]{1,3}))?.(?P<distribution>$|.*)"
@@ -71,15 +76,15 @@ def parse_hours(hours: bs4.BeautifulSoup) -> Tuple[int, int, str]:
     hours_text = hours.select_one("strong").text
     hours_text = sanitize(hours_text)
     results = re.findall(CREDITS_PATTERN, hours_text)[0]
-    min_hours = max_hours = distribution = None
-    min_hours, max_hours, distribution = results
+    min_credits = max_hours = distribution = None
+    min_credits, max_hours, distribution = results
     distribution = distribution.strip()
-    min_hours = float(min_hours)
+    min_credits = float(min_credits)
     if max_hours:
         max_hours = float(max_hours)
     else:
-        max_hours = min_hours
-    return (min_hours, max_hours, distribution)
+        max_hours = min_credits
+    return (min_credits, max_hours, distribution)
 
 
 def parse_description(courseblockdesc: bs4.BeautifulSoup) -> Tuple[str, str, str]:
@@ -129,54 +134,59 @@ def parse_courseblock(courseblock: bs4.BeautifulSoup):
     results = parse_courseblocktitle(courseblocktitle)
     if not results:
         return
-    course_num, name = results
+    dept, course_num, name = results
     hours = courseblock.select_one(".hours")
-    min_hours, max_hours, distribution = parse_hours(hours)
+    min_credits, max_credits, distribution_of_hours = parse_hours(hours)
     courseblockdesc = courseblock.select_one(".courseblockdesc")
-    description, prereqs, coreqs = parse_description(courseblockdesc)
-    return (
-        course_num,
-        name,
-        min_hours,
-        max_hours,
-        distribution,
-        description if description else None,
-        prereqs,
-        coreqs,
-    )
+    description, prerequsites, corequisites = parse_description(courseblockdesc)
+    return {
+        "dept": dept,
+        "course_num": course_num,
+        "name": name,
+        "min_credits": min_credits,
+        "max_credits": max_credits,
+        "distribution_of_hours": distribution_of_hours,
+        "description": description if description else None,
+        "prerequisites": prerequsites,
+        "corequisites": corequisites,
+    }
+
+
+async def scrape_departments(url_dept_pairs: List[Tuple[str, str]]):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        loop = asyncio.get_event_loop()
+        futures = [
+            loop.run_in_executor(executor, requests.get, BASE_URL + url)
+            for url, _ in url_dept_pairs
+        ]
+        parameters = []
+        for response in await asyncio.gather(*futures):
+            soup = bs4.BeautifulSoup(response.text, "lxml")
+            for courseblock in soup.select(".courseblock"):
+                results = parse_courseblock(courseblock)
+                if results:
+                    dept, course_num = results["dept"], results["course_num"]
+                    _id = "%s-%s" % (dept, course_num)
+                    parameters.append((_id, results))
+        return parameters
 
 
 class Command(base.BaseCommand):
     help = "Scrapes course data from catalog.tamu.edu"
 
     def handle(self, *args, **options):
+        start = time.time()
         for level in EDUCATION_LEVELS:
+            level_start = time.time()
             description_url = DEPARTMENT_LIST_URL % level
             course_description_html = request_html(description_url)
             url_dept_pairs = collect_departments(course_description_html)
-            for path, dept in url_dept_pairs:
-                print(dept)
-                url = BASE_URL + path
-                soup = request_html(url)
-                courseblocks = soup.select(".courseblock")
-                for courseblock in courseblocks:
-                    results = parse_courseblock(courseblock)
-                    if results:
-                        course_num, name, min_hours, max_hours, distribution, description, prereqs, coreqs = (
-                            results
-                        )
-                        _id = "%s-%s" % (dept, course_num)
-                        scraper_models.Course.objects.update_or_create(
-                            id=_id,
-                            defaults={
-                                "dept": dept,
-                                "course_num": course_num,
-                                "name": name,
-                                "distribution_of_hours": distribution,
-                                "description": description,
-                                "prerequisites": prereqs,
-                                "corequisites": coreqs,
-                                "min_credits": min_hours,
-                                "max_credits": max_hours,
-                            },
-                        )
+            loop = asyncio.get_event_loop()
+            parameters = loop.run_until_complete(scrape_departments(url_dept_pairs))
+            with transaction.atomic():
+                for params in parameters:
+                    _id, rest = params
+                    course = scraper_models.Course(id=_id, **rest)
+                    course.save()
+        end = time.time()
+        print("Finished scraping courses in %s seconds" % (end - start))
