@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_elasticsearch_dsl",
+    # "django_elasticsearch_dsl",
     "scraper",
     "scheduler",
     "rest_framework",
@@ -94,14 +94,14 @@ DATABASES = {
 
 # Caching settings
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://localhost:6379/0",
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
-        "TIMEOUT": 60 * 60,  # 1 hour
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://localhost:6379/0",
+#         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+#         "TIMEOUT": 60 * 60,  # 1 hour
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -124,7 +124,7 @@ REST_FRAMEWORK = {
     )
 }
 
-ELASTICSEARCH_DSL = {"default": {"hosts": "localhost:9200"}}
+# ELASTICSEARCH_DSL = {"default": {"hosts": "localhost:9200"}}
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
