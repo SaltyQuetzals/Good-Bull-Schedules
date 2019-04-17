@@ -96,6 +96,7 @@ def sections(term_code: str, dept: str, retries=0) -> bs4.BeautifulSoup:
         requests.exceptions.ConnectionError,
         requests.exceptions.ChunkedEncodingError,
         ConnectionResetError,
+        requests.exceptions.HTTPError
     ):
         if retries < 10:
             return sections(term_code, dept, retries + 1)
