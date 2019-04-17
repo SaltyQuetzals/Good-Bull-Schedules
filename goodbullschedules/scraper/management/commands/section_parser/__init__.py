@@ -70,7 +70,7 @@ def parse_tr(tr: bs4.BeautifulSoup) -> Tuple[Dict[Any, Any], List[Dict]]:
         A Section tuple.
     """
     ddtitle = tr.select_one(".ddtitle")
-    name, crn, course_num, section_num = parse_ddtitle(ddtitle)
+    name, crn, dept, course_num, section_num = parse_ddtitle(ddtitle)
     dddefault = tr.select_one(".dddefault")
     min_hours, max_hours, meeting_fields, all_instructors = parse_dddefault(dddefault)
     instructor = None
@@ -79,6 +79,7 @@ def parse_tr(tr: bs4.BeautifulSoup) -> Tuple[Dict[Any, Any], List[Dict]]:
     return (
         {
             "name": name,
+            "dept": dept,
             "crn": crn,
             "course_num": course_num,
             "section_num": section_num,

@@ -1,8 +1,29 @@
+import asyncio
+
 from django.core.management import base
 from django.db import transaction
 
-from scraper.management.commands import shared_functions, section_parser as parser
 from scraper import models as scraper_models
+from scraper.management.commands import section_parser as parser
+from scraper.management.commands import shared_functions
+from typing import List
+import concurrent
+
+
+async def scrape_departments(term_code: int, depts: List[str]):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        loop = asyncio.get_event_loop()
+        futures = [
+            loop.run_in_executor(executor, shared_functions.sections, term_code, dept)
+            for dept in depts
+        ]
+        parameters = []
+        for soup in await asyncio.gather(*futures):
+            if not soup:
+                continue
+            results = parser.parse_sections(soup)
+            parameters += results
+        return parameters
 
 
 class Command(base.BaseCommand):
@@ -11,49 +32,38 @@ class Command(base.BaseCommand):
             print("----------------------")
             print(term_code)
             print("----------------------")
-            for dept in shared_functions.depts(term_code):
-                print(dept)
-                soup = shared_functions.sections(term_code, dept)
-                if not soup:
-                    continue
-                results = parser.parse_sections(soup)
-
-                with transaction.atomic():
-                    courses = {}
-                    for section_fields, meeting_fields in results:
-                        section_id = f"{section_fields['crn']}_{term_code}"
-                        course_id = f"{dept}-{section_fields['course_num']}"
-                        if not course_id in courses:
-                            course_name = section_fields["name"].title()
-                            if section_fields["course_num"].endswith("89"):
-                                course_name = "Special Topics"
-                            course, _ = scraper_models.Course.objects.update_or_create(
+            loop = asyncio.get_event_loop()
+            depts = shared_functions.depts(term_code)
+            parameters = loop.run_until_complete(scrape_departments(term_code, depts))
+            with transaction.atomic():
+                courses = {}
+                for section_fields, meeting_fields in parameters:
+                    section_id = f"{section_fields['crn']}_{term_code}"
+                    course_id = (
+                        f"{section_fields['dept']}-{section_fields['course_num']}"
+                    )
+                    if not course_id in courses:
+                        course = scraper_models.Course.objects.filter(
+                            id=course_id
+                        ).first()
+                        if course:
+                            courses[course_id] = course
+                        else:
+                            course = scraper_models.Course(
                                 id=course_id,
-                                defaults={
-                                    "dept": dept,
+                                default={
+                                    "dept": section_fields["dept"],
                                     "course_num": section_fields["course_num"],
                                     "min_credits": section_fields["min_credits"],
                                     "max_credits": section_fields["max_credits"],
-                                    "course_num": section_fields["course_num"],
-                                    "name": course_name,
+                                    "name": section_fields["name"].title(),
                                 },
                             )
+                            course.save()
                             courses[course_id] = course
-                        section, _ = scraper_models.Section.objects.update_or_create(
-                            id=section_id,
-                            defaults={
-                                "term_code": int(term_code),
-                                "dept": dept,
-                                **section_fields,
-                            },
-                        )
-                        if meeting_fields:
-                            for i, m in enumerate(meeting_fields):
-                                meeting_id = section_id + "_" + str(i + 1)
-                                if len(meeting_id) > 30:
-                                    print(meeting_id, len(meeting_id))
-                                    return
-                                meeting, _ = scraper_models.Meeting.objects.update_or_create(
-                                    id=meeting_id, defaults={**m}
-                                )
-                                section.meetings.add(meeting)
+                    section = scraper_models.Section(
+                        id=section_id,
+                        defaults={"term_code": int(term_code), **section_fields},
+                    )
+                    section.save()
+
