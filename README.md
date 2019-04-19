@@ -7,6 +7,7 @@ Open-source scheduling server for Texas A&amp;M University students, written usi
 - Elasticsearch for high-performance full-text searching.
 
 ## Goals
+
 - Create an open, no-auth-needed API for students to analyze TAMU course/section data without having to create their own scrapers.
 - Create an intuitive, content-based search interface that allows students to search courses based on the content they cover, not just keyword matching.
 - Provide a readable, modular, and extensible (in order of priority) backend server for helping students make their schedules.

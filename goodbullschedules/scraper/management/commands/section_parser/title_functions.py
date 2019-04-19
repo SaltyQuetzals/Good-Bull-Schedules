@@ -39,7 +39,7 @@ def strip_sptp_prefix(name: str) -> str:
     return name.strip()
 
 
-def parse_ddtitle(ddtitle) -> Tuple[str, int, str, str]:
+def parse_ddtitle(ddtitle) -> Tuple[str, int, str, str, str]:
     """Extracts the abbreviated name, CRN, and section number from the ddtitle.
 
     Args:
@@ -54,7 +54,7 @@ def parse_ddtitle(ddtitle) -> Tuple[str, int, str, str]:
     split_text = title_text.split(" - ")
     section_num = split_text[-1]
     crn = int(split_text[-3])
-    _, course_num = split_text[-2].split(" ")
+    dept, course_num = split_text[-2].split(" ")
 
     name = " ".join(split_text[0:-3])
     honors = False
@@ -67,4 +67,4 @@ def parse_ddtitle(ddtitle) -> Tuple[str, int, str, str]:
         name = strip_sptp_prefix(name)
 
     # TODO: Return sptp and honors status
-    return name, crn, course_num, section_num
+    return name, crn, dept, course_num, section_num
