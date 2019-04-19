@@ -1,5 +1,8 @@
 import asyncio
+import concurrent
+import datetime
 import time
+from typing import List
 
 from django.core.management import base
 from django.db import transaction
@@ -7,8 +10,6 @@ from django.db import transaction
 from scraper import models as scraper_models
 from scraper.management.commands import section_parser as parser
 from scraper.management.commands import shared_functions
-from typing import List
-import concurrent
 
 
 async def scrape_departments(term_code: int, depts: List[str]):
@@ -39,17 +40,20 @@ class Command(base.BaseCommand):
             start = time.time()
             parameters = loop.run_until_complete(scrape_departments(term_code, depts))
             end = time.time()
-            print(
-                f"{len(parameters)} sections collected in {end - start} seconds. Beginning indexing."
-            )
+            td = datetime.timedelta(seconds=int(end - start))
+            print(f"{len(parameters)} sections collected in {td}. Beginning indexing.")
 
             with transaction.atomic():
                 courses = {}
                 for section_fields, meeting_fields in parameters:
                     section_id = f"{section_fields['crn']}_{term_code}"
-                    course_id = f"{section_fields['dept']}-{section_fields['course_num']}"
+                    course_id = (
+                        f"{section_fields['dept']}-{section_fields['course_num']}"
+                    )
                     if not course_id in courses:
-                        course = scraper_models.Course.objects.filter(id=course_id).first()
+                        course = scraper_models.Course.objects.filter(
+                            id=course_id
+                        ).first()
                         if course:
                             courses[course_id] = course
                         else:
@@ -73,5 +77,5 @@ class Command(base.BaseCommand):
                             meeting = scraper_models.Meeting(id=meeting_id, **m)
                             meeting.save()
                             section.meetings.add(meeting)
-
-        print(f"Finished scraping all sections in {time.time() - full_start} seconds.")
+        td = datetime.timedelta(seconds=int(time.time() - full_start))
+        print(f"Finished scraping all sections in {td} seconds.")

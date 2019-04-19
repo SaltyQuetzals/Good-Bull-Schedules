@@ -3,6 +3,7 @@ import concurrent
 import re
 import time
 from typing import Dict, List, Set, Tuple
+import datetime
 
 import bs4
 import requests
@@ -177,7 +178,6 @@ class Command(base.BaseCommand):
     def handle(self, *args, **options):
         start = time.time()
         for level in EDUCATION_LEVELS:
-            level_start = time.time()
             description_url = DEPARTMENT_LIST_URL % level
             course_description_html = request_html(description_url)
             url_dept_pairs = collect_departments(course_description_html)
@@ -189,4 +189,7 @@ class Command(base.BaseCommand):
                     course = scraper_models.Course(id=_id, **rest)
                     course.save()
         end = time.time()
-        print("Finished scraping courses in %s seconds" % (end - start))
+        seconds_elapsed = int(end - start)
+        td = datetime.timedelta(seconds=seconds_elapsed)
+
+        print(f"Finished scraping courses in {td}")
