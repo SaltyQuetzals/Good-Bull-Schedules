@@ -28,10 +28,25 @@ async def scrape_departments(term_code: int, depts: List[str]):
         return parameters
 
 
+def is_current_term(term_code: str) -> bool:
+    this_year = datetime.date.today().year
+    return int(term_code[:4]) >= this_year
+
+
 class Command(base.BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--shallow",
+            action="store_true",
+            help="Scrape terms from this and next year",
+        )
+
     def handle(self, *args, **options):
         full_start = time.time()
-        for term_code in shared_functions.term_codes():
+        term_codes = shared_functions.term_codes()
+        if options["shallow"]:
+            term_codes = filter(is_current_term, term_codes)
+        for term_code in term_codes:
             print("----------------------")
             print(term_code)
             print("----------------------")
