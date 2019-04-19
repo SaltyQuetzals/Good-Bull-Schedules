@@ -1,6 +1,10 @@
 ### Documents Folder ###
 documents
 
+### Migrations ###
+*/migrations/*
+!*/migrations/__init__.py
+
 ### Config Folder ###
 config
 
