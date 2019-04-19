@@ -78,4 +78,4 @@ class Command(base.BaseCommand):
                             meeting.save()
                             section.meetings.add(meeting)
         td = datetime.timedelta(seconds=int(time.time() - full_start))
-        print(f"Finished scraping all sections in {td} seconds.")
+        print(f"Finished scraping all sections in {td}.")
