@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django_elasticsearch_dsl",
+    "django_elasticsearch_dsl",
     "scraper",
     "scheduler",
     "rest_framework",
@@ -124,7 +124,7 @@ REST_FRAMEWORK = {
     )
 }
 
-# ELASTICSEARCH_DSL = {"default": {"hosts": "localhost:9200"}}
+ELASTICSEARCH_DSL = {"default": {"hosts": "localhost:9200"}}
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
