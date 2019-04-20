@@ -8,6 +8,9 @@ python3 manage.py migrate --settings=goodbullschedules.settings.docker
 python3 manage.py migrate --settings=goodbullschedules.settings.docker scraper
 python3 manage.py migrate --settings=goodbullschedules.settings.docker scheduler
 
+echo "Creating search index"
+python3 manage.py search_index --rebuild  --settings=goodbullschedules.settings.docker -f
+
 echo "Making PDF Directory"
 mkdir -p /app/documents/pdfs
 
