@@ -199,5 +199,6 @@ class DeleteCourseScheduleView(generics.DestroyAPIView):
         sections_to_remove = schedule.sections.filter(
             dept=course.dept, course_num=course.course_num
         )
-        schedule.sections.remove(sections_to_remove)
+        schedule.sections.remove(*sections_to_remove)
+        schedule.save()
         return response.Response(200)
