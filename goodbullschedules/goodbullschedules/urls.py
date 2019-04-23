@@ -24,13 +24,13 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("register/", register),
-    path("auth/", include("rest_framework.urls")),
+    # path("auth/", include("rest_framework.urls")),
     path("api/data/", include("scraper.urls")),
-    path("api/schedules/", include("scheduler.urls")),
-    path(
-        "",
-        cache_control(no_cache=True, must_revalidate=True, no_store=True)(
-            login_required(IndexView.as_view())
-        ),
-    ),
+    # path("api/schedules/", include("scheduler.urls")),
+    # path(
+    #     "",
+    #     cache_control(no_cache=True, must_revalidate=True, no_store=True)(
+    #         login_required(IndexView.as_view())
+    #     ),
+    # ),
 ]

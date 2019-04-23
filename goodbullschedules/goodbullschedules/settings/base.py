@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_elasticsearch_dsl",
     "scraper",
-    "scheduler",
+    # "scheduler",
     "rest_framework",
 ]
 

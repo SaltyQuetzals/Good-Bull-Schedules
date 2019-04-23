@@ -1,4 +1,4 @@
-version: "3"
+version: "3.1"
 
 services:
   db:
@@ -6,9 +6,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER_FILE=/run/secrets/SECRET_POSTGRES_USER
+      - POSTGRES_PASSWORD_FILE=/run/secrets/SECRET_POSTGRES_PASS
       - POSTGRES_DB=goodbullschedules
+    secrets:
+      - SECRET_POSTGRES_USER
+      - SECRET_POSTGRES_PASS
   redis:
     image: redis:latest
   elasticsearch:
@@ -29,7 +32,19 @@ services:
       - redis
       - elasticsearch
     container_name: good-bull-schedules
+    secrets:
+      - SECRET_DJANGO_KEY
+      - SECRET_POSTGRES_USER
+      - SECRET_POSTGRES_PASS
 
 volumes:
   pgdata:
   esdata:
+
+secrets:
+  SECRET_DJANGO_KEY:
+    file: ./config/django_key
+  SECRET_POSTGRES_USER:
+    file: ./config/postgres_username
+  SECRET_POSTGRES_PASS:
+    file: ./config/postgres_password

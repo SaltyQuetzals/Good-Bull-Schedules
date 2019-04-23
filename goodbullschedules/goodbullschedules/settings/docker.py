@@ -1,11 +1,13 @@
 from .base import *
 
+SECRET_KEY = open("/run/secrets/SECRET_DJANGO_KEY").read()
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "goodbullschedules",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
+        "USER": open("/run/secrets/SECRET_POSTGRES_USER").read(),
+        "PASSWORD": open("/run/secrets/SECRET_POSTGRES_PASS").read(),
         "HOST": "db",
     }
 }

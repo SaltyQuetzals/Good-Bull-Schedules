@@ -1,6 +1,9 @@
 ### Documents Folder ###
 goodbullschedules/documents
 
+### Config Folder ###
+config
+
 ### Migrations ###
 */migrations/*
 !*/migrations/__init__.py
