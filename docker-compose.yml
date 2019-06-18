@@ -18,6 +18,7 @@ services:
     image: elasticsearch:6.5.0
     environment:
       ES_JAVA_OPTS: "-Xms750m -Xmx750m"
+      discovery.type: "single-node"
     volumes:
       - esdata:/usr/share/elasticsearch/data
   web:
