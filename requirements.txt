@@ -7,7 +7,7 @@ bs4==0.0.1
 certifi==2019.3.9
 chardet==3.0.4
 Click==7.0
-Django==2.2.10
+Django==2.2.13
 django-elasticsearch-dsl==0.5.1
 django-redis==4.10.0
 django-rest-framework==0.1.0
